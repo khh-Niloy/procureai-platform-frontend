@@ -1,8 +1,8 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+ProcureAI’s Next.js frontend. Authentication is cookie-based and powered by RTK Query.
 
 ## Getting Started
 
-First, run the development server:
+Copy `.env.example` to `.env.local` if the API is not at `http://localhost:3000`, then run:
 
 ```bash
 npm run dev
@@ -14,7 +14,9 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result. Run the Nest backend on port 5000 (for example, `PORT=5000 npm run start:dev`) so the frontend’s `/api` proxy does not point back to itself.
+
+Set `NEXT_PUBLIC_API_URL` to the backend origin (for example, `http://localhost:5000`). Requests go directly from the browser to the backend with `credentials: "include"`; no token is placed in local storage or exposed to client-side JavaScript. On a 401 from a protected query, the shared base query calls `/auth/refresh` once and retries the original request. The backend must allow the frontend origin through credentialed CORS.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
