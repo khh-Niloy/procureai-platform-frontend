@@ -35,6 +35,9 @@ export const authApi = baseApi.injectEndpoints({
       query: () => ({ url: "/auth/logout", method: "POST" }),
       invalidatesTags: ["User"],
     }),
+    refresh: builder.mutation<{ message: string }, void>({
+      query: () => ({ url: "/auth/refresh", method: "POST" }),
+    }),
   }),
 });
 
@@ -44,4 +47,5 @@ export const {
   useRegisterInvitedMutation,
   useProfileQuery,
   useLogoutMutation,
+  useRefreshMutation,
 } = authApi;
