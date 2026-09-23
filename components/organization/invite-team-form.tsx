@@ -54,7 +54,7 @@ export function InviteTeamForm() {
   }
 
   return (
-    <section className="mt-10 rounded-2xl border border-slate-200 bg-white p-6 sm:p-8">
+    <section id="invite-team" className="scroll-mt-20 mt-10 rounded-2xl border border-slate-200 bg-white p-6 sm:p-8">
       <div className="max-w-xl">
         <p className="text-sm font-semibold text-[#168778]">TEAM ACCESS</p>
         <h2 className="mt-2 text-xl font-semibold">Invite teammates</h2>

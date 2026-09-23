@@ -53,9 +53,17 @@ export const purchaseRequestApi = baseApi.injectEndpoints({
       query: () => "/purchase-requests",
       providesTags: ["PurchaseRequest"],
     }),
+    pendingInitialApprovals: builder.query<PurchaseRequest[], void>({
+      query: () => "/purchase-requests/pending-initial-approval",
+      providesTags: ["PurchaseRequest"],
+    }),
+    pendingQuoteCollection: builder.query<PurchaseRequest[], void>({
+      query: () => "/purchase-requests/pending-quote-collection",
+      providesTags: ["PurchaseRequest"],
+    }),
     decideInitialApproval: builder.mutation<
       PurchaseRequest,
-      { id: string; status: "APPROVED" | "REJECTED"; comment?: string }
+      { id: string; status: "INITIAL_APPROVED" | "REJECTED"; comment?: string }
     >({
       query: ({ id, ...body }) => ({
         url: `/purchase-requests/${id}/initial-approval`,
@@ -71,12 +79,26 @@ export const purchaseRequestApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["PurchaseRequest"],
     }),
+    analyzeQuotes: builder.mutation<
+      { purchaseRequestStatus: PurchaseRequestStatus; analysis: unknown },
+      { id: string; quoteIds: string[] }
+    >({
+      query: ({ id, quoteIds }) => ({
+        url: `/purchase-requests/${id}/analyze-quotes`,
+        method: "POST",
+        body: { quoteIds },
+      }),
+      invalidatesTags: ["PurchaseRequest"],
+    }),
   }),
 });
 
 export const {
   useCreatePurchaseRequestMutation,
   usePurchaseRequestsQuery,
+  usePendingInitialApprovalsQuery,
+  usePendingQuoteCollectionQuery,
   useDecideInitialApprovalMutation,
   useStartQuoteCollectionMutation,
+  useAnalyzeQuotesMutation,
 } = purchaseRequestApi;

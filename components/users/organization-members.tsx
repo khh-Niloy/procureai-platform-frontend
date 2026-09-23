@@ -60,7 +60,7 @@ export function OrganizationMembers({ canEdit }: { canEdit: boolean }) {
   const user = userState.data;
 
   return (
-    <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 sm:p-8">
+    <section id="organization-members" className="scroll-mt-20 mt-8 rounded-2xl border border-slate-200 bg-white p-6 sm:p-8">
       <div className="mb-5">
         <p className="text-sm font-semibold text-[#168778]">ADMINISTRATION</p>
         <h2 className="mt-1 text-xl font-semibold">Organization members</h2>
