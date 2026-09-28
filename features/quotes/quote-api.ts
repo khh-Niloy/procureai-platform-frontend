@@ -10,15 +10,13 @@ export interface CreateQuoteItemInput {
 }
 
 export interface CreateQuoteInput {
-  userId: string;
-  vendorId?: string;
   purchaseRequestId: string;
   subtotal?: string;
   discount?: string;
   tax?: string;
   shippingCost?: string;
   totalAmount: string;
-  currency: "USD" | "EUR" | "GBP" | "BDT";
+  currency: "BDT";
   deliveryDays?: number;
   deliveryTerms?: string;
   paymentTerms?: string;
@@ -72,7 +70,7 @@ export const quoteApi = baseApi.injectEndpoints({
     }),
     createQuote: builder.mutation<CreatedQuote, CreateQuoteInput>({
       query: (body) => ({ url: "/quotes", method: "POST", body }),
-      invalidatesTags: ["PurchaseRequest", "Document"],
+      invalidatesTags: ["PurchaseRequest", "VendorRequest", "Document"],
     }),
   }),
 });
