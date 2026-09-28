@@ -18,20 +18,23 @@ export function QuoteAnalysisPanel() {
   const [requestId, setRequestId] = useState("");
   const [vendorId, setVendorId] = useState("");
   const [selectedQuoteIds, setSelectedQuoteIds] = useState<string[]>([]);
+  const [previewDocumentId, setPreviewDocumentId] = useState<string>();
   const [message, setMessage] = useState<string>();
 
   const analyzableRequests = useMemo(
-    () => (requestsState.data ?? []).filter((request) => request.status === "QUOTE_COLLECTION"),
+    () => (requestsState.data ?? []).filter((request) =>
+      request.status === "QUOTE_COLLECTION" || request.status === "AI_ANALYSIS_FAILED",
+    ),
     [requestsState.data],
   );
-  const documents = documentsState.data ?? [];
+  const documents = documentsState.currentData ?? [];
   const quoteDocuments = documents.filter(
     (document): document is typeof document & { quoteId: string } => Boolean(document.quoteId),
   );
 
   function selectVendor(nextVendorId: string) {
     setVendorId(nextVendorId);
-    setSelectedQuoteIds([]);
+    setPreviewDocumentId(undefined);
     setMessage(undefined);
     if (nextVendorId) void loadDocuments(nextVendorId);
   }
@@ -63,7 +66,7 @@ export function QuoteAnalysisPanel() {
     <section id="quote-analysis" className="scroll-mt-20 mt-10 rounded-2xl border border-slate-200 bg-white p-6 sm:p-8">
       <p className="text-sm font-semibold text-[#168778]">QUOTE ANALYSIS</p>
       <h2 className="mt-2 text-xl font-semibold">Compare vendor quotes</h2>
-      <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">Review vendor quote documents first, choose a request in quote collection, then submit quote IDs for analysis.</p>
+      <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">Select quote documents from one or more vendors, choose a request in quote collection, then submit the selected quote IDs for analysis.</p>
 
       <div className="mt-6">
         <div className="flex items-end justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Step 1</p><h3 className="mt-1 font-semibold">Vendors and quote documents</h3></div>{vendorsState.isLoading && <span className="text-sm text-slate-500">Loading vendors…</span>}</div>
@@ -71,7 +74,7 @@ export function QuoteAnalysisPanel() {
         {!vendorsState.isLoading && (vendorsState.data ?? []).length === 0 && <p className="mt-4 rounded-lg bg-slate-50 p-3 text-sm text-slate-500">No vendors are available.</p>}
         <div className="mt-4 space-y-3">{(vendorsState.data ?? []).filter((vendor) => vendor.isActive).map((vendor) => <div key={vendor.id} className={`rounded-xl border p-4 transition ${vendorId === vendor.id ? "border-[#168778] bg-[#f4fbf9]" : "border-slate-200 bg-white"}`}>
           <button type="button" className="flex w-full items-center justify-between gap-3 text-left" onClick={() => selectVendor(vendor.id)}><div><p className="font-semibold text-slate-800">{vendor.name}</p><p className="mt-1 text-sm text-slate-500">{vendor.email}</p></div><span className="text-sm font-medium text-[#168778]">{vendorId === vendor.id ? "Selected" : "View quotes"}</span></button>
-          {vendorId === vendor.id && <div className="mt-4 border-t border-slate-200 pt-4"><p className="text-sm font-medium text-slate-700">Quote documents</p>{documentsState.isFetching && <p className="mt-2 text-sm text-slate-500">Loading documents…</p>}{!documentsState.isFetching && quoteDocuments.length === 0 && <p className="mt-2 text-sm text-slate-500">No quote documents found for this vendor.</p>}<div className="mt-2 space-y-2">{quoteDocuments.map((document) => <label key={document.quoteId} className="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-100 bg-white px-3 py-3 hover:bg-slate-50"><input type="checkbox" checked={selectedQuoteIds.includes(document.quoteId)} onChange={() => toggleQuote(document.quoteId)} className="h-4 w-4 accent-[#168778]" /><span className="min-w-0 flex-1 truncate text-sm text-slate-700">{document.fileName}</span><span className="text-xs text-slate-400">Quote ID available</span></label>)}</div></div>}
+          {vendorId === vendor.id && <div className="mt-4 border-t border-slate-200 pt-4"><p className="text-sm font-medium text-slate-700">Quote documents</p>{documentsState.isFetching && <p className="mt-2 text-sm text-slate-500">Loading documents…</p>}{!documentsState.isFetching && quoteDocuments.length === 0 && <p className="mt-2 text-sm text-slate-500">No quote documents found for this vendor.</p>}<div className="mt-2 space-y-3">{quoteDocuments.map((document) => <div key={document.id} className="rounded-lg border border-slate-100 bg-white"><div className="flex items-center gap-3 px-3 py-3"><input aria-label={`Select ${document.fileName} for analysis`} type="checkbox" checked={selectedQuoteIds.includes(document.quoteId)} onChange={() => toggleQuote(document.quoteId)} className="h-4 w-4 accent-[#168778]" /><span className="min-w-0 flex-1 truncate text-sm text-slate-700">{document.fileName}</span><button type="button" onClick={() => setPreviewDocumentId((current) => current === document.id ? undefined : document.id)} className="shrink-0 text-sm font-medium text-[#168778]">{previewDocumentId === document.id ? "Hide preview" : "Preview PDF"}</button></div>{previewDocumentId === document.id && <iframe title={`PDF preview: ${document.fileName}`} src={document.url} className="h-[32rem] w-full border-t border-slate-100" />}</div>)}</div></div>}
         </div>)}</div>
       </div>
 
@@ -84,7 +87,7 @@ export function QuoteAnalysisPanel() {
 
       <div className="mt-8 border-t border-slate-100 pt-6">
         <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Step 3</p><h3 className="mt-1 font-semibold">Analysis fields</h3>
-        <div className="mt-4 grid gap-4 lg:grid-cols-2"><label className="block text-sm font-medium text-slate-700">Purchase request ID<input readOnly value={requestId} placeholder="Select a request above" className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 font-mono text-xs" /></label><label className="block text-sm font-medium text-slate-700">Quote IDs<input readOnly value={selectedQuoteIds.join(", ")} placeholder="Select quote documents above" className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 font-mono text-xs" /></label></div>
+        <div className="mt-4 grid gap-4 lg:grid-cols-2"><label className="block text-sm font-medium text-slate-700">Purchase request ID<input readOnly value={requestId} placeholder="Select a request above" className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 font-mono text-xs" /></label><label className="block text-sm font-medium text-slate-700">Quote IDs <span className="font-normal text-slate-500">({selectedQuoteIds.length} selected)</span><textarea readOnly value={selectedQuoteIds.join(", ")} placeholder="Select quote documents above" rows={3} className="mt-2 w-full resize-y rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 font-mono text-xs" /></label></div>
       </div>
 
       {message && <p className="mt-4 rounded-xl bg-slate-50 px-3.5 py-3 text-sm text-slate-700" role="status">{message}</p>}

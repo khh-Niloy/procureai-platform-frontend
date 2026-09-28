@@ -11,10 +11,10 @@ export interface Vendor {
 }
 
 export interface VendorDocument {
+  id: string;
   quoteId: string | null;
-  organizationId: string;
-  vendorId: string | null;
   fileName: string;
+  url: string;
 }
 
 export interface VendorQuoteRequest {
