@@ -10,8 +10,8 @@ import {
   useVendorsQuery,
 } from "@/features/vendors/vendor-api";
 
-export function QuoteAnalysisPanel() {
-  const requestsState = usePurchaseRequestsQuery();
+export function QuoteAnalysisPanel({ organizationId }: { organizationId: string }) {
+  const requestsState = usePurchaseRequestsQuery(organizationId);
   const vendorsState = useVendorsQuery();
   const [loadDocuments, documentsState] = useLazyVendorDocumentsQuery();
   const [analyzeQuotes, analysisState] = useAnalyzeQuotesMutation();
@@ -22,10 +22,11 @@ export function QuoteAnalysisPanel() {
   const [message, setMessage] = useState<string>();
 
   const analyzableRequests = useMemo(
-    () => (requestsState.data ?? []).filter((request) =>
-      request.status === "QUOTE_COLLECTION" || request.status === "AI_ANALYSIS_FAILED",
-    ),
-    [requestsState.data],
+    () =>
+      (requestsState.data?.data ?? []).filter(
+        (request) => request.status === "QUOTE_COLLECTION",
+      ),
+    [requestsState.data?.data],
   );
   const documents = documentsState.currentData ?? [];
   const quoteDocuments = documents.filter(
@@ -55,7 +56,7 @@ export function QuoteAnalysisPanel() {
     setMessage(undefined);
     try {
       await analyzeQuotes({ id: requestId, quoteIds: selectedQuoteIds }).unwrap();
-      setMessage("Quotes submitted for analysis. The request is now waiting for manager review.");
+      setMessage("Quotes submitted for analysis. The request will move to finance review after analysis succeeds.");
       setSelectedQuoteIds([]);
     } catch (error) {
       setMessage(getErrorMessage(error));

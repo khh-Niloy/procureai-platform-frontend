@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import type { User } from "@/lib/auth/types";
 
-type Section = "overview" | "create-request" | "initial-approvals" | "quote-collection" | "quote-analysis" | "quote-submission" | "quote-requests" | "vendor-quotes" | "invite-team" | "organization-members";
+type Section = "overview" | "request-progress" | "create-request" | "quote-collection" | "quote-analysis" | "quote-submission" | "quote-requests" | "vendor-quotes" | "invite-team" | "organization-members";
 type IconName = "home" | "request" | "check" | "quote" | "users" | "plus";
 interface NavItem { label: string; href: Section; icon: IconName }
 
@@ -18,8 +18,8 @@ export function WorkspaceSidebar({ user, onLogout, isLoggingOut }: {
   const [active, setActive] = useState<Section>("overview");
   const items = useMemo<NavItem[]>(() => [
     { label: "Overview", href: "overview", icon: "home" },
+    { label: "Request progress", href: "request-progress", icon: "request" },
     ...(user.role === "TEAM_LEADER" ? [{ label: "New purchase request", href: "create-request", icon: "request" } as const] : []),
-    ...(user.role === "MANAGER" ? [{ label: "Initial approvals", href: "initial-approvals", icon: "check" } as const] : []),
     ...(user.role === "PROCUREMENT_OFFICER" ? [{ label: "Quote collection", href: "quote-collection", icon: "quote" } as const] : []),
     ...(user.role === "PROCUREMENT_OFFICER" ? [{ label: "Quote analysis", href: "quote-analysis", icon: "check" } as const] : []),
     ...(user.role === "VENDOR" ? [{ label: "Submit quote", href: "quote-submission", icon: "quote" } as const] : []),
