@@ -25,18 +25,22 @@ interface Tab {
 
 /* ─── Tab config per role ─── */
 function getTabsForRole(role: Role): Tab[] {
-  const tabs: Tab[] = [
-    {
-      id: "request-progress",
-      label: "Request Progress",
-      icon: <RequestIcon />,
-    },
-    {
-      id: "analysis-history",
-      label: "AI Analysis",
-      icon: <AnalysisIcon />,
-    },
-  ];
+  const tabs: Tab[] = [];
+
+  if (role !== "VENDOR") {
+    tabs.push(
+      {
+        id: "request-progress",
+        label: "Request Progress",
+        icon: <RequestIcon />,
+      },
+      {
+        id: "analysis-history",
+        label: "AI Analysis",
+        icon: <AnalysisIcon />,
+      }
+    );
+  }
 
   if (role === "TEAM_LEADER") {
     tabs.push({
@@ -79,7 +83,9 @@ function getTabsForRole(role: Role): Tab[] {
     tabs.push({ id: "invite-team", label: "Invite Team", icon: <PlusIcon /> });
   }
 
-  tabs.push({ id: "organization", label: "Organization", icon: <UsersIcon /> });
+  if (role !== "VENDOR") {
+    tabs.push({ id: "organization", label: "Organization", icon: <UsersIcon /> });
+  }
   return tabs;
 }
 
