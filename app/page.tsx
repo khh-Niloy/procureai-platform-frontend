@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useLogoutMutation, useProfileQuery } from "@/features/auth/auth-api";
 import { InviteTeamForm } from "@/components/organization/invite-team-form";
 import { CreateRequestForm } from "@/components/purchase-requests/create-request-form";
-import { InitialApprovalList } from "@/components/purchase-requests/initial-approval-list";
+import { PurchaseRequestProgressTable } from "@/components/purchase-requests/purchaseRequestProgressTable";
 import { QuoteCollectionList } from "@/components/purchase-requests/quote-collection-list";
 import { QuoteAnalysisPanel } from "@/components/purchase-requests/quote-analysis-panel";
 import { VendorQuoteForm } from "@/components/quotes/vendor-quote-form";
@@ -24,20 +24,19 @@ interface Tab {
 
 /* ─── Tab config per role ─── */
 function getTabsForRole(role: Role): Tab[] {
-  const tabs: Tab[] = [];
+  const tabs: Tab[] = [
+    {
+      id: "request-progress",
+      label: "Request Progress",
+      icon: <RequestIcon />,
+    },
+  ];
 
   if (role === "TEAM_LEADER") {
     tabs.push({
       id: "create-request",
       label: "New Request",
       icon: <RequestIcon />,
-    });
-  }
-  if (role === "MANAGER") {
-    tabs.push({
-      id: "initial-approvals",
-      label: "Approvals",
-      icon: <CheckIcon />,
     });
   }
   if (role === "PROCUREMENT_OFFICER") {
@@ -83,20 +82,22 @@ function TabPanel({
   tabId,
   role,
   userId,
+  organizationId,
 }: {
   tabId: string;
   role: Role;
   userId: string;
+  organizationId: string;
 }) {
   switch (tabId) {
+    case "request-progress":
+      return <PurchaseRequestProgressTable organizationId={organizationId} role={role} />;
     case "create-request":
       return <CreateRequestForm />;
-    case "initial-approvals":
-      return <InitialApprovalList />;
     case "quote-collection":
-      return <QuoteCollectionList />;
+      return <QuoteCollectionList organizationId={organizationId} />;
     case "quote-analysis":
-      return <QuoteAnalysisPanel />;
+      return <QuoteAnalysisPanel organizationId={organizationId} />;
     case "quote-submission":
       return <VendorQuoteForm userId={userId} />;
     case "quote-requests":
@@ -268,7 +269,12 @@ export default function Home() {
         {/* ── Tab Panel ── */}
         <div className="py-7">
           {currentTab ? (
-            <TabPanel tabId={currentTab} role={user.role} userId={user.id} />
+            <TabPanel
+              tabId={currentTab}
+              role={user.role}
+              userId={user.id}
+              organizationId={user.organizationId}
+            />
           ) : (
             <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
               <h2 className="text-lg font-semibold text-slate-800">

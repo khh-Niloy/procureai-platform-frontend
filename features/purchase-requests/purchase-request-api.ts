@@ -2,15 +2,27 @@ import { baseApi } from "@/lib/api/base-api";
 
 export type PurchaseRequestStatus =
   | "PENDING_MANAGER_APPROVAL"
-  | "INITIAL_APPROVED"
+  | "REQUEST_APPROVED"
   | "QUOTE_COLLECTION"
   | "AI_ANALYSIS_SUCCESS"
   | "AI_ANALYSIS_FAILED"
   | "PENDING_FINANCE_APPROVAL"
   | "PENDING_CFO_APPROVAL"
   | "CFO_APPROVED"
-  | "PURCHASED"
+  | "RECEIVED_BY_VENDOR"
   | "REJECTED";
+
+export type PurchaseRequestAction = "approve" | "reject" | "quote" | "received";
+
+export interface PurchaseRequestLog {
+  id: string;
+  status: PurchaseRequestStatus;
+  performedBy: string;
+  performedByName?: string;
+  performedByRole?: string;
+  createdAt: string;
+  note: string | null;
+}
 
 export interface PurchaseRequestItemInput {
   name: string;
@@ -22,7 +34,7 @@ export interface CreatePurchaseRequestInput {
   title: string;
   description: string;
   budget?: string;
-  currency?: "USD" | "EUR" | "GBP" | "BDT";
+  currency?: "BDT";
   requiredBy?: string;
   items: PurchaseRequestItemInput[];
 }
@@ -31,13 +43,19 @@ export interface PurchaseRequest {
   id: string;
   title: string;
   description: string;
-  budget: string | null;
+  budget: string | number | null;
   currency: string;
   requiredBy: string | null;
-  status: PurchaseRequestStatus;
+  status: PurchaseRequestStatus | null;
   createdAt: string;
+  quantity: number;
   requester: { id: string; name: string; email: string };
   items: PurchaseRequestItemInput[];
+  logs: PurchaseRequestLog[];
+}
+
+export interface PurchaseRequestListResponse {
+  data: PurchaseRequest[];
 }
 
 export const purchaseRequestApi = baseApi.injectEndpoints({
@@ -49,33 +67,42 @@ export const purchaseRequestApi = baseApi.injectEndpoints({
       query: (body) => ({ url: "/purchase-requests", method: "POST", body }),
       invalidatesTags: ["PurchaseRequest"],
     }),
-    purchaseRequests: builder.query<PurchaseRequest[], void>({
-      query: () => "/purchase-requests",
-      providesTags: ["PurchaseRequest"],
-    }),
-    pendingInitialApprovals: builder.query<PurchaseRequest[], void>({
-      query: () => "/purchase-requests/pending-initial-approval",
+    purchaseRequests: builder.query<PurchaseRequestListResponse, string>({
+      query: (organizationId) =>
+        `/purchase-requests?organizationId=${encodeURIComponent(organizationId)}`,
       providesTags: ["PurchaseRequest"],
     }),
     pendingQuoteCollection: builder.query<PurchaseRequest[], void>({
       query: () => "/purchase-requests/pending-quote-collection",
       providesTags: ["PurchaseRequest"],
     }),
-    decideInitialApproval: builder.mutation<
-      PurchaseRequest,
-      { id: string; status: "INITIAL_APPROVED" | "REJECTED"; comment?: string }
+    transitionPurchaseRequest: builder.mutation<
+      PurchaseRequestLog,
+      {
+        purchaseRequestId: string;
+        purchaseRequestLogId: string;
+        organizationId: string;
+        type: PurchaseRequestAction;
+        note?: string;
+      }
     >({
-      query: ({ id, ...body }) => ({
-        url: `/purchase-requests/${id}/initial-approval`,
+      query: ({ purchaseRequestId, purchaseRequestLogId, organizationId, type, note }) => ({
+        url: `/purchase-request-logs/${purchaseRequestLogId}/approveAndReject`,
         method: "POST",
-        body,
+        body: { purchaseRequestId, organizationId, type, note },
       }),
       invalidatesTags: ["PurchaseRequest"],
     }),
-    startQuoteCollection: builder.mutation<PurchaseRequest, string>({
-      query: (id) => ({
-        url: `/purchase-requests/${id}/start-quote-collection`,
+    startQuoteCollection: builder.mutation<PurchaseRequestLog, {
+      purchaseRequestId: string;
+      purchaseRequestLogId: string;
+      organizationId: string;
+      note?: string;
+    }>({
+      query: ({ purchaseRequestId, purchaseRequestLogId, organizationId, note }) => ({
+        url: `/purchase-request-logs/${purchaseRequestLogId}/approveAndReject`,
         method: "POST",
+        body: { purchaseRequestId, organizationId, type: "quote", note },
       }),
       invalidatesTags: ["PurchaseRequest"],
     }),
@@ -96,9 +123,8 @@ export const purchaseRequestApi = baseApi.injectEndpoints({
 export const {
   useCreatePurchaseRequestMutation,
   usePurchaseRequestsQuery,
-  usePendingInitialApprovalsQuery,
   usePendingQuoteCollectionQuery,
-  useDecideInitialApprovalMutation,
+  useTransitionPurchaseRequestMutation,
   useStartQuoteCollectionMutation,
   useAnalyzeQuotesMutation,
 } = purchaseRequestApi;
