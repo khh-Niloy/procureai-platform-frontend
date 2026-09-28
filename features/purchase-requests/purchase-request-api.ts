@@ -58,6 +58,24 @@ export interface PurchaseRequestListResponse {
   data: PurchaseRequest[];
 }
 
+export interface PurchaseRequestAnalysis {
+  id: string;
+  status: "PENDING" | "SUCCEEDED" | "FAILED";
+  selectedQuoteIds: unknown;
+  recommendation: unknown;
+  hardRuleResults: unknown;
+  recommendedQuoteId: string | null;
+  failureReason: string | null;
+  completedAt: string | null;
+  createdAt: string;
+  createdBy: { id: string; name: string };
+}
+
+export interface PurchaseRequestAnalysisListResponse {
+  purchaseRequest: { id: string; title: string };
+  data: PurchaseRequestAnalysis[];
+}
+
 export const purchaseRequestApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     createPurchaseRequest: builder.mutation<
@@ -71,6 +89,10 @@ export const purchaseRequestApi = baseApi.injectEndpoints({
       query: (organizationId) =>
         `/purchase-requests?organizationId=${encodeURIComponent(organizationId)}`,
       providesTags: ["PurchaseRequest"],
+    }),
+    purchaseRequestAnalyses: builder.query<PurchaseRequestAnalysisListResponse, string>({
+      query: (purchaseRequestId) =>
+        `/purchase-requests/${encodeURIComponent(purchaseRequestId)}/analyses`,
     }),
     pendingQuoteCollection: builder.query<PurchaseRequest[], void>({
       query: () => "/purchase-requests/pending-quote-collection",
@@ -123,6 +145,7 @@ export const purchaseRequestApi = baseApi.injectEndpoints({
 export const {
   useCreatePurchaseRequestMutation,
   usePurchaseRequestsQuery,
+  useLazyPurchaseRequestAnalysesQuery,
   usePendingQuoteCollectionQuery,
   useTransitionPurchaseRequestMutation,
   useStartQuoteCollectionMutation,

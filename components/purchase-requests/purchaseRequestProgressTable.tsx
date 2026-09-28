@@ -129,6 +129,9 @@ export function PurchaseRequestProgressTable({
                 <tr className="align-top" key={request.id}>
                   <th className="sticky left-0 z-[1] min-w-64 bg-white px-4 py-4 text-left font-normal">
                     <p className="font-semibold text-slate-900">{request.title}</p>
+                    <p className="mt-1 break-all font-mono text-[11px] text-slate-500">
+                      Request ID: {request.id}
+                    </p>
                     <p className="mt-1 text-xs text-slate-500">
                       {request.requester.name} · {request.quantity} item
                       {request.quantity === 1 ? "" : "s"}
@@ -164,6 +167,7 @@ export function PurchaseRequestProgressTable({
           </table>
         </div>
       )}
+
     </section>
   );
 }

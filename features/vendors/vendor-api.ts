@@ -14,24 +14,21 @@ export interface VendorDocument {
   id: string;
   quoteId: string | null;
   fileName: string;
-  url: string;
+  url: string | null;
+  status: "PROCESSING" | "DONE" | "FAILED";
+  failureReason: string | null;
 }
 
-export interface VendorQuoteRequest {
+export interface VendorRequest {
   id: string;
-  vendorQuoteRequest: "PENDING" | "QOUTE_SUBMITTED";
+  title: string;
+  description: string;
+  budget: string | null;
+  currency: string;
+  requiredBy: string | null;
   createdAt: string;
-  purchaseRequest: {
-    id: string;
-    title: string;
-    description: string;
-    budget: string | null;
-    currency: string;
-    requiredBy: string | null;
-    status: string;
-    items: { id: string; name: string; description: string | null; quantity: number }[];
-    organization: { id: string; name: string };
-  };
+  isSubmitted: boolean;
+  items: { id: string; name: string; description: string | null; quantity: number }[];
 }
 
 export const vendorApi = baseApi.injectEndpoints({
@@ -40,8 +37,9 @@ export const vendorApi = baseApi.injectEndpoints({
       query: () => "/vendors",
       providesTags: ["Vendor"],
     }),
-    vendorQuoteRequests: builder.query<VendorQuoteRequest[], void>({
-      query: () => "/vendors/quote-requests",
+    vendorRequests: builder.query<{ data: VendorRequest[] }, void>({
+      query: () => "/vendors/requests",
+      providesTags: ["VendorRequest"],
     }),
     vendorDocuments: builder.query<VendorDocument[], string>({
       query: (vendorId) => ({
@@ -56,5 +54,5 @@ export const vendorApi = baseApi.injectEndpoints({
 export const {
   useVendorsQuery,
   useLazyVendorDocumentsQuery,
-  useVendorQuoteRequestsQuery,
+  useVendorRequestsQuery,
 } = vendorApi;

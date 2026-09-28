@@ -6,6 +6,7 @@ import { useLogoutMutation, useProfileQuery } from "@/features/auth/auth-api";
 import { InviteTeamForm } from "@/components/organization/invite-team-form";
 import { CreateRequestForm } from "@/components/purchase-requests/create-request-form";
 import { PurchaseRequestProgressTable } from "@/components/purchase-requests/purchaseRequestProgressTable";
+import { PurchaseRequestAnalysisHistory } from "@/components/purchase-requests/purchaseRequestAnalysisHistory";
 import { QuoteCollectionList } from "@/components/purchase-requests/quote-collection-list";
 import { QuoteAnalysisPanel } from "@/components/purchase-requests/quote-analysis-panel";
 import { VendorQuoteForm } from "@/components/quotes/vendor-quote-form";
@@ -29,6 +30,11 @@ function getTabsForRole(role: Role): Tab[] {
       id: "request-progress",
       label: "Request Progress",
       icon: <RequestIcon />,
+    },
+    {
+      id: "analysis-history",
+      label: "AI Analysis",
+      icon: <AnalysisIcon />,
     },
   ];
 
@@ -81,17 +87,17 @@ function getTabsForRole(role: Role): Tab[] {
 function TabPanel({
   tabId,
   role,
-  userId,
   organizationId,
 }: {
   tabId: string;
   role: Role;
-  userId: string;
   organizationId: string;
 }) {
   switch (tabId) {
     case "request-progress":
       return <PurchaseRequestProgressTable organizationId={organizationId} role={role} />;
+    case "analysis-history":
+      return <PurchaseRequestAnalysisHistory />;
     case "create-request":
       return <CreateRequestForm />;
     case "quote-collection":
@@ -99,7 +105,7 @@ function TabPanel({
     case "quote-analysis":
       return <QuoteAnalysisPanel organizationId={organizationId} />;
     case "quote-submission":
-      return <VendorQuoteForm userId={userId} />;
+      return <VendorQuoteForm />;
     case "quote-requests":
       return <VendorQuoteRequests />;
     case "vendor-quotes":
@@ -124,14 +130,6 @@ export default function Home() {
   useEffect(() => {
     if (unauthenticated) router.replace("/login");
   }, [router, unauthenticated]);
-
-  // Set default tab once user loads
-  useEffect(() => {
-    if (user && activeTab === null) {
-      const tabs = getTabsForRole(user.role);
-      if (tabs.length > 0) setActiveTab(tabs[0].id);
-    }
-  }, [user, activeTab]);
 
   async function handleLogout() {
     try {
@@ -272,7 +270,6 @@ export default function Home() {
             <TabPanel
               tabId={currentTab}
               role={user.role}
-              userId={user.id}
               organizationId={user.organizationId}
             />
           ) : (
@@ -336,22 +333,6 @@ function RequestIcon() {
     >
       <path d="M8 4h8a2 2 0 0 1 2 2v14H6V6a2 2 0 0 1 2-2Z" />
       <path d="M9 4.5h6M9 10h6M9 14h6M9 18h3" />
-    </svg>
-  );
-}
-function CheckIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="h-4 w-4"
-    >
-      <circle cx="12" cy="12" r="9" />
-      <path d="m8 12 2.5 2.5L16 9" />
     </svg>
   );
 }
