@@ -13,6 +13,7 @@ import { VendorQuoteForm } from "@/components/quotes/vendor-quote-form";
 import { VendorQuoteRequests } from "@/components/quotes/vendor-quote-requests";
 import { VendorQuotes } from "@/components/quotes/vendor-quotes";
 import { OrganizationMembers } from "@/components/users/organization-members";
+import { Logo } from "@/components/ui/logo";
 
 /* ─── Types ─── */
 type Role = string;
@@ -175,14 +176,7 @@ export default function Home() {
       <header className="sticky top-0 z-40 border-b border-slate-200 bg-white shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           {/* Brand */}
-          <div className="flex items-center gap-3">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#168778] text-base font-bold text-white shadow-sm">
-              P
-            </span>
-            <span className="text-[15px] font-semibold tracking-tight text-slate-900">
-              ProcureAI
-            </span>
-          </div>
+          <Logo />
 
           {/* User info + logout */}
           <div className="flex items-center gap-3 sm:gap-5">

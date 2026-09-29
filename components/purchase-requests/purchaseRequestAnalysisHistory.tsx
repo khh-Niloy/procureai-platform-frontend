@@ -108,12 +108,168 @@ export function PurchaseRequestAnalysisHistory() {
 
 function AnalysisJson({ label, value, defaultOpen = false }: { label: string; value: unknown; defaultOpen?: boolean }) {
   if (value === null || value === undefined) return null;
+  const isString = typeof value === "string";
+  
+  // Custom renderer for Recommendation JSON
+  if (label === "Recommendation" && typeof value === "object" && value !== null && "quotes" in value && Array.isArray((value as any).quotes)) {
+    const data = value as {
+      quotes: Array<{
+        quoteId?: string;
+        price?: { score: number; explanation: string };
+        delivery?: { score: number; explanation: string };
+        warranty?: { score: number; explanation: string };
+        strengths?: string[];
+        issues?: Array<{ type: string; description: string }>;
+      }>;
+    };
+    
+    return (
+      <details className="mt-4 rounded-lg bg-slate-50 p-4" open={defaultOpen}>
+        <summary className="cursor-pointer text-sm font-medium text-slate-800">{label}</summary>
+        <div className="mt-4 space-y-4">
+          {data.quotes.map((quote, i) => (
+            <div key={quote.quoteId || i} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+              <h4 className="font-semibold text-slate-900">Quote: <span className="font-mono text-sm font-normal text-slate-500">{quote.quoteId}</span></h4>
+              
+              <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                {quote.price && (
+                  <div className="rounded-lg bg-slate-50 p-4 border border-slate-100">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-slate-700">Price Score</span>
+                      <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${quote.price.score >= 80 ? 'bg-emerald-100 text-emerald-800' : quote.price.score >= 50 ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'}`}>{quote.price.score}/100</span>
+                    </div>
+                    <p className="mt-3 text-sm text-slate-600 leading-relaxed">{quote.price.explanation}</p>
+                  </div>
+                )}
+                
+                {quote.delivery && (
+                  <div className="rounded-lg bg-slate-50 p-4 border border-slate-100">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-slate-700">Delivery Score</span>
+                      <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${quote.delivery.score >= 80 ? 'bg-emerald-100 text-emerald-800' : quote.delivery.score >= 50 ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'}`}>{quote.delivery.score}/100</span>
+                    </div>
+                    <p className="mt-3 text-sm text-slate-600 leading-relaxed">{quote.delivery.explanation}</p>
+                  </div>
+                )}
+                
+                {quote.warranty && (
+                  <div className="rounded-lg bg-slate-50 p-4 border border-slate-100">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-slate-700">Warranty Score</span>
+                      <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${quote.warranty.score >= 80 ? 'bg-emerald-100 text-emerald-800' : quote.warranty.score >= 50 ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'}`}>{quote.warranty.score}/100</span>
+                    </div>
+                    <p className="mt-3 text-sm text-slate-600 leading-relaxed">{quote.warranty.explanation}</p>
+                  </div>
+                )}
+              </div>
+
+              {(((quote.strengths?.length ?? 0) > 0) || ((quote.issues?.length ?? 0) > 0)) && (
+                <div className="mt-5 grid gap-6 border-t border-slate-100 pt-5 sm:grid-cols-2">
+                  {((quote.strengths?.length ?? 0) > 0) && (
+                    <div>
+                      <h5 className="flex items-center gap-1.5 text-sm font-semibold text-emerald-700">
+                        <span className="grid h-5 w-5 place-items-center rounded-full bg-emerald-100 text-emerald-600">+</span>
+                        Strengths
+                      </h5>
+                      <ul className="mt-3 space-y-2 text-sm text-slate-600">
+                        {quote.strengths?.map((s, idx) => (
+                          <li key={idx} className="flex gap-2">
+                            <span className="text-emerald-500">•</span>
+                            <span>{s}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {((quote.issues?.length ?? 0) > 0) && (
+                    <div>
+                      <h5 className="flex items-center gap-1.5 text-sm font-semibold text-amber-700">
+                        <span className="grid h-5 w-5 place-items-center rounded-full bg-amber-100 text-amber-600">!</span>
+                        Issues
+                      </h5>
+                      <ul className="mt-3 space-y-2 text-sm text-slate-600">
+                        {quote.issues?.map((iss, idx) => (
+                          <li key={idx} className="flex gap-2">
+                            <span className="text-amber-500">•</span>
+                            <span><span className="font-medium text-slate-800 capitalize">{iss.type}:</span> {iss.description}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </details>
+    );
+  }
+
+  // Custom renderer for Selected quote IDs
+  if (label === "Selected quote IDs" && Array.isArray(value)) {
+    return (
+      <details className="mt-4 rounded-lg bg-slate-50 p-4" open={defaultOpen}>
+        <summary className="cursor-pointer text-sm font-medium text-slate-800">{label}</summary>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {value.map((id, idx) => (
+            <span key={idx} className="rounded-md border border-slate-200 bg-white px-2.5 py-1.5 font-mono text-xs text-slate-600 shadow-sm">
+              {String(id)}
+            </span>
+          ))}
+          {value.length === 0 && <p className="text-sm text-slate-500">No quotes selected.</p>}
+        </div>
+      </details>
+    );
+  }
+
+  // Custom renderer for Hard rule results
+  if (label === "Hard rule results" && Array.isArray(value)) {
+    return (
+      <details className="mt-4 rounded-lg bg-slate-50 p-4" open={defaultOpen}>
+        <summary className="cursor-pointer text-sm font-medium text-slate-800">{label}</summary>
+        <div className="mt-4 space-y-4">
+          {value.map((result, i) => (
+            <div key={result.quoteId || i} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+              <h4 className="font-semibold text-slate-900">Quote: <span className="font-mono text-sm font-normal text-slate-500">{result.quoteId}</span></h4>
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                {["budget", "delivery", "requirements"].map((key) => {
+                  const rule = result[key];
+                  if (!rule) return null;
+                  const passed = rule.status === "PASS";
+                  return (
+                    <div key={key} className="rounded-lg border border-slate-100 bg-slate-50 p-4">
+                      <div className="flex items-center gap-2">
+                        <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full text-[10px] font-bold ${passed ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
+                          {passed ? "✓" : "✕"}
+                        </span>
+                        <h5 className="text-sm font-medium capitalize text-slate-800">{key}</h5>
+                      </div>
+                      <p className="mt-2 text-sm text-slate-600">{rule.message}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+          {value.length === 0 && <p className="text-sm text-slate-500">No hard rule results.</p>}
+        </div>
+      </details>
+    );
+  }
+
   return (
-    <details className="mt-3 rounded-lg bg-slate-50 p-3" open={defaultOpen}>
-      <summary className="cursor-pointer text-sm font-medium text-slate-700">{label}</summary>
-      <pre className="mt-3 overflow-x-auto whitespace-pre-wrap break-words text-xs leading-5 text-slate-600">
-        {JSON.stringify(value, null, 2)}
-      </pre>
+    <details className="mt-4 rounded-lg bg-slate-50 p-4" open={defaultOpen}>
+      <summary className="cursor-pointer text-sm font-medium text-slate-800">{label}</summary>
+      {isString ? (
+        <div className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-600">
+          {value}
+        </div>
+      ) : (
+        <pre className="mt-3 overflow-x-auto whitespace-pre-wrap break-words text-xs leading-5 text-slate-600">
+          {JSON.stringify(value, null, 2)}
+        </pre>
+      )}
     </details>
   );
 }

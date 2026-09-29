@@ -73,10 +73,42 @@ export function QuoteAnalysisPanel({ organizationId }: { organizationId: string 
         <div className="flex items-end justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Step 1</p><h3 className="mt-1 font-semibold">Vendors and quote documents</h3></div>{vendorsState.isLoading && <span className="text-sm text-slate-500">Loading vendors…</span>}</div>
         {vendorsState.error && <p className="mt-4 text-sm text-red-700" role="alert">Could not load vendors.</p>}
         {!vendorsState.isLoading && (vendorsState.data ?? []).length === 0 && <p className="mt-4 rounded-lg bg-slate-50 p-3 text-sm text-slate-500">No vendors are available.</p>}
-        <div className="mt-4 space-y-3">{(vendorsState.data ?? []).filter((vendor) => vendor.isActive).map((vendor) => <div key={vendor.id} className={`rounded-xl border p-4 transition ${vendorId === vendor.id ? "border-[#168778] bg-[#f4fbf9]" : "border-slate-200 bg-white"}`}>
-          <button type="button" className="flex w-full items-center justify-between gap-3 text-left" onClick={() => selectVendor(vendor.id)}><div><p className="font-semibold text-slate-800">{vendor.name}</p><p className="mt-1 text-sm text-slate-500">{vendor.email}</p></div><span className="text-sm font-medium text-[#168778]">{vendorId === vendor.id ? "Selected" : "View quotes"}</span></button>
-          {vendorId === vendor.id && <div className="mt-4 border-t border-slate-200 pt-4"><p className="text-sm font-medium text-slate-700">Quote documents</p>{documentsState.isFetching && <p className="mt-2 text-sm text-slate-500">Loading documents…</p>}{!documentsState.isFetching && quoteDocuments.length === 0 && <p className="mt-2 text-sm text-slate-500">No quote documents found for this vendor.</p>}<div className="mt-2 space-y-3">{quoteDocuments.map((document) => <div key={document.id} className="rounded-lg border border-slate-100 bg-white"><div className="flex items-center gap-3 px-3 py-3"><input aria-label={`Select ${document.fileName} for analysis`} type="checkbox" checked={selectedQuoteIds.includes(document.quoteId)} onChange={() => toggleQuote(document.quoteId)} className="h-4 w-4 accent-[#168778]" /><span className="min-w-0 flex-1 truncate text-sm text-slate-700">{document.fileName}</span>{document.status !== "DONE" && <span className="text-xs text-slate-500">{document.status === "PROCESSING" ? "PDF is generating" : document.failureReason || "PDF generation failed"}</span>}<button type="button" disabled={!document.url && previewDocumentId !== document.id} onClick={() => setPreviewDocumentId((current) => current === document.id ? undefined : document.id)} className="shrink-0 text-sm font-medium text-[#168778] disabled:cursor-not-allowed disabled:text-slate-400">{previewDocumentId === document.id ? "Hide preview" : "Preview PDF"}</button></div>{previewDocumentId === document.id && document.url && <iframe title={`PDF preview: ${document.fileName}`} src={document.url} className="block h-[32rem] w-full border-t border-slate-100" />}</div>)}</div></div>}
-        </div>)}</div>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {(vendorsState.data ?? []).filter((vendor) => vendor.isActive).map((vendor) => (
+            <button key={vendor.id} type="button" className={`flex w-full items-center justify-between gap-3 rounded-xl border p-4 text-left transition ${vendorId === vendor.id ? "border-[#168778] bg-[#f4fbf9] ring-1 ring-[#168778]" : "border-slate-200 bg-white hover:border-slate-300"}`} onClick={() => selectVendor(vendor.id)}>
+              <div>
+                <p className="font-semibold text-slate-800">{vendor.name}</p>
+                <p className="mt-1 text-sm text-slate-500">{vendor.email}</p>
+              </div>
+              <span className="text-sm font-medium text-[#168778]">{vendorId === vendor.id ? "Selected" : "View quotes"}</span>
+            </button>
+          ))}
+        </div>
+
+        {vendorId && (
+          <div className="mt-6 rounded-xl border border-[#168778]/20 bg-white p-5 shadow-sm sm:p-6">
+            <h4 className="text-base font-semibold text-slate-800">Quote documents</h4>
+            <p className="mt-1 text-sm text-slate-500">Select which documents from this vendor to include in the analysis.</p>
+            {documentsState.isFetching && <p className="mt-4 text-sm text-slate-500">Loading documents…</p>}
+            {!documentsState.isFetching && quoteDocuments.length === 0 && <p className="mt-4 text-sm text-slate-500">No quote documents found for this vendor.</p>}
+            
+            {quoteDocuments.length > 0 && (
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                {quoteDocuments.map((document) => (
+                  <div key={document.id} className="flex flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+                    <div className="flex items-center gap-3 px-4 py-3">
+                      <input aria-label={`Select ${document.fileName} for analysis`} type="checkbox" checked={selectedQuoteIds.includes(document.quoteId)} onChange={() => toggleQuote(document.quoteId)} className="h-4 w-4 accent-[#168778]" />
+                      <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-700">{document.fileName}</span>
+                      {document.status !== "DONE" && <span className="text-xs text-slate-500">{document.status === "PROCESSING" ? "PDF is generating" : document.failureReason || "PDF generation failed"}</span>}
+                      <button type="button" disabled={!document.url && previewDocumentId !== document.id} onClick={() => setPreviewDocumentId((current) => current === document.id ? undefined : document.id)} className="shrink-0 text-sm font-medium text-[#168778] disabled:cursor-not-allowed disabled:text-slate-400">{previewDocumentId === document.id ? "Hide preview" : "Preview PDF"}</button>
+                    </div>
+                    {previewDocumentId === document.id && document.url && <iframe title={`PDF preview: ${document.fileName}`} src={document.url} className="block h-[32rem] w-full border-t border-slate-100" />}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="mt-8 border-t border-slate-100 pt-6">
