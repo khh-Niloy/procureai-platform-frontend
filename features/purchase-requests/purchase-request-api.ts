@@ -30,6 +30,14 @@ export interface PurchaseRequestItemInput {
   quantity: number;
 }
 
+export interface PurchaseRequestItem {
+  id: string;
+  name: string;
+  description: string | null;
+  quantity: number;
+  specifications?: unknown;
+}
+
 export interface CreatePurchaseRequestInput {
   title: string;
   description: string;
@@ -50,7 +58,7 @@ export interface PurchaseRequest {
   createdAt: string;
   quantity: number;
   requester: { id: string; name: string; email: string };
-  items: PurchaseRequestItemInput[];
+  items: PurchaseRequestItem[];
   logs: PurchaseRequestLog[];
 }
 

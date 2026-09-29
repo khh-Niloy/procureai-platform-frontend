@@ -58,9 +58,9 @@ export function VendorQuotes() {
                   <td className="px-4 py-4 whitespace-nowrap text-slate-600">{formatDate(quote.submittedAt)}</td>
                   <td className="px-4 py-4 whitespace-nowrap font-medium text-slate-700">{quote.currency} {quote.totalAmount}</td>
                   <td className="px-4 py-4">
-                    {!document && <span className="text-amber-700">Not available</span>}
-                    {document?.status === "PROCESSING" && <span className="text-amber-700">Generating…</span>}
-                    {document?.status === "FAILED" && <span className="text-red-700">Failed: {document.failureReason || "PDF generation error"}</span>}
+                    {!document && <span className="inline-flex items-center px-2 py-0.5 rounded-md border border-slate-200 bg-slate-50 text-xs font-medium text-slate-700">Not available</span>}
+                    {document?.status === "PROCESSING" && <span className="inline-flex items-center px-2 py-0.5 rounded-md border border-amber-200 bg-amber-50 text-xs font-medium text-amber-700">Generating…</span>}
+                    {document?.status === "FAILED" && <span className="inline-flex items-center px-2 py-0.5 rounded-md border border-red-200 bg-red-50 text-xs font-medium text-red-700">Failed: {document.failureReason || "PDF generation error"}</span>}
                     {document?.status === "DONE" && !download && <button type="button" onClick={() => loadPdf(quote.id)} disabled={downloadState.isFetching} className="rounded-lg bg-[#168778] px-3 py-2 text-xs font-semibold text-white disabled:opacity-60">{downloadState.isFetching ? "Loading…" : "Get PDF"}</button>}
                     {download && <a href={download.url} target="_blank" rel="noopener noreferrer" className="rounded-lg bg-[#168778] px-3 py-2 text-xs font-semibold text-white">Open PDF</a>}
                   </td>
